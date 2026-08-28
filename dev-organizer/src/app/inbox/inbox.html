@@ -1,0 +1,8 @@
+<h2>{{title}}</h2>
+@for (item of itemList ; track item.id) {
+<app-workspace-item [item]="item" (markDone)="onMarkDone($event)" (deleteItem)="onDeleteItem($event)"></app-workspace-item>
+
+
+}
+<input type="text" [(ngModel)]="newItemTitle">
+<button (click)="addItem()">Add item</button>

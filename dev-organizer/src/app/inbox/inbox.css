@@ -1,0 +1,97 @@
+:host {
+  display: block;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+app-workspace-item {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+input {
+  width: min(100%, 420px);
+  padding: 0.8rem 1rem;
+  margin-top: 1rem;
+
+  color: #e2e8f0;
+  background: #0f172a;
+
+  border: 1px solid #334155;
+  border-radius: 0.65rem;
+
+  font: inherit;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+input::placeholder {
+  color: #64748b;
+}
+
+input:focus {
+  background: #111c31;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 15%);
+}
+
+button {
+  padding: 0.8rem 1.1rem;
+  margin-left: 0.65rem;
+
+  color: #eff6ff;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+
+  border: none;
+  border-radius: 0.65rem;
+
+  font: inherit;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 14px rgb(37 99 235 / 20%);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgb(37 99 235 / 30%);
+  filter: brightness(1.05);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+  :host {
+    padding: 1rem;
+  }
+
+  input {
+    width: 100%;
+  }
+
+  button {
+    width: 100%;
+    margin: 0.75rem 0 0;
+  }
+}
