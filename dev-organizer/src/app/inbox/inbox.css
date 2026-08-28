@@ -80,6 +80,49 @@ button:hover {
 button:active {
   transform: translateY(0);
 }
+.itemSelect {
+  display: flex;
+  flex-direction: column;
+  justify-content:space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+
+}
+#itemType {
+  width: 100%;
+  padding: 0.75rem 1rem;
+
+  background: #1e293b;
+  color: #e2e8f0;
+
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+
+  font: inherit;
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+#itemType:hover {
+  border-color: #475569;
+  background: #243247;
+}
+
+#itemType:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 15%);
+}
+
+#itemType option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
 
 @media (max-width: 600px) {
   :host {

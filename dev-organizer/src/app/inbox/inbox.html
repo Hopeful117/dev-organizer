@@ -1,8 +1,29 @@
 <h2>{{title}}</h2>
 @for (item of itemList ; track item.id) {
-<app-workspace-item [item]="item" (markDone)="onMarkDone($event)" (deleteItem)="onDeleteItem($event)"></app-workspace-item>
+<app-workspace-item [item]="item" (accept)="onAccept($event)" (deleteItem)="onDeleteItem($event)"
+                    (start)="onStart($event)" (done)="onDone($event)"></app-workspace-item>
 
 
 }
-<input type="text" [(ngModel)]="newItemTitle">
+<input
+  type="text"
+  [(ngModel)]="newItemTitle"
+  placeholder="Title">
+
+<input
+  type="text"
+  [(ngModel)]="newItemDescription"
+  placeholder="Description">
+
+<div class="itemSelect">
+<label for="itemType">Type</label>
+
+<select id="itemType" name="itemType" [(ngModel)]="newItemType">
+  <option value="IDEA">Idea</option>
+  <option value="TASK">Task</option>
+  <option value="NOTE">Note</option>
+
+</select>
+</div>
+
 <button (click)="addItem()">Add item</button>
