@@ -1,0 +1,41 @@
+<article class="workspace-card">
+  <header class="workspace-card__header">
+    <div>
+      <span class="workspace-card__type">{{ item().type }}</span>
+      <h3>{{ item().title }}</h3>
+    </div>
+
+    <span class="workspace-card__status">
+      {{ item().status }}
+    </span>
+  </header>
+
+  @if (item().description) {
+    <p class="workspace-card__description">
+      {{ item().description }}
+    </p>
+  }
+
+  <footer class="workspace-card__footer">
+    <div class="workspace-card__meta">
+      <span>#{{ item().id }}</span>
+      <span>{{ item().createdAt }}</span>
+    </div>
+
+    <div class="workspace-card__actions">
+      @if (item().status !== 'DONE') {
+        <button
+          class="action-button"
+          (click)="markDone.emit(item().id)">
+          Mark done
+        </button>
+      }
+
+      <button
+        class="action-button action-button--danger"
+        (click)="deleteItem.emit(item().id)">
+        Delete
+      </button>
+    </div>
+  </footer>
+</article>
