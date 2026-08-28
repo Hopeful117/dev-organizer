@@ -1,7 +1,14 @@
 <h2>{{title}}</h2>
-@for (item of itemList ; track item.id) {
+<h3>Filter</h3>
+<div class="filter-bar">
+  <button class="action-button" (click)="putSelectedType('ALL')" [class.active]="selectType() === 'ALL'">ALL</button>
+  <button class="action-button" (click)="putSelectedType('IDEA')" [class.active]="selectType() === 'IDEA'">IDEA</button>
+  <button class="action-button" (click)="putSelectedType('TASK')" [class.active]="selectType() === 'TASK'">TASK</button>
+  <button class="action-button" (click)="putSelectedType('NOTE')" [class.active]="selectType() === 'NOTE'">NOTE</button>
+</div>
+@for (item of filteredItems() ; track item.id) {
 <app-workspace-item [item]="item" (accept)="onAccept($event)" (deleteItem)="onDeleteItem($event)"
-                    (start)="onStart($event)" (done)="onDone($event)"></app-workspace-item>
+                    (start)="onStart($event)" (done)="onDone($event)" ></app-workspace-item>
 
 
 }
