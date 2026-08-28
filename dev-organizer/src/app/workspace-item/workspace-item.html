@@ -5,9 +5,14 @@
       <h3>{{ item().title }}</h3>
     </div>
 
-    <span class="workspace-card__status">
-      {{ item().status }}
-    </span>
+    <span
+      class="workspace-card__status"
+      [class.workspace-card__status--inbox]="item().status === 'INBOX'"
+      [class.workspace-card__status--todo]="item().status === 'TODO'"
+      [class.workspace-card__status--progress]="item().status === 'IN_PROGRESS'"
+      [class.workspace-card__status--done]="item().status === 'DONE'">
+  {{ item().status }}
+</span>
   </header>
 
   @if (item().description) {
@@ -19,17 +24,32 @@
   <footer class="workspace-card__footer">
     <div class="workspace-card__meta">
       <span>#{{ item().id }}</span>
-      <span>{{ item().createdAt }}</span>
+      <span>{{ item().createdAt | date : 'dd MMM yyyy, HH:mm'}}</span>
     </div>
 
     <div class="workspace-card__actions">
-      @if (item().status !== 'DONE') {
+      @if (item().status === 'INBOX') {
         <button
           class="action-button"
-          (click)="markDone.emit(item().id)">
-          Mark done
+          (click)="accept.emit(item().id)">
+          Accept
         </button>
       }
+
+      @if(item().status ==='TODO' && item().type ==='TASK'){
+        <button class="action-button"
+                (click)="start.emit(item().id)"
+          >
+          Start
+
+        </button>
+      }
+      @if(item().status ==='IN_PROGRESS' && item().type=== 'TASK'){
+        <button class="action-button" (click)="done.emit(item().id)">
+        Mark as Done
+        </button>
+      }
+
 
       <button
         class="action-button action-button--danger"

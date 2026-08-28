@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {WorkspaceItem} from '../workspace-item/workspace-item.models';
+import {ItemType, WorkspaceItem} from '../workspace-item/workspace-item.models';
 import {WorkspaceItemComponent} from '../workspace-item/workspace-item';
 import {FormsModule} from '@angular/forms';
 
@@ -14,13 +14,16 @@ import {FormsModule} from '@angular/forms';
 })
 export class Inbox {
   title: string = 'Inbox';
+  newItemTitle:string='';
+  newItemDescription:string='';
+  newItemType:ItemType='IDEA'
   itemList:Array<WorkspaceItem>=[
   {
     id : 1,
     title:"My Inbox",
     description:"Building a workspace Inbox",
     type:"IDEA",
-    status:"IN_PROGRESS",
+    status:"INBOX",
     createdAt: new Date()
   },
   {
@@ -28,25 +31,41 @@ export class Inbox {
     title:"Learning Angular & Typescript",
     description:"Improve my understanding of Angular & Typescript",
     type:"TASK",
-    status:"IN_PROGRESS",
+    status:"INBOX",
     createdAt: new Date()
 
   }
   ]
-  onMarkDone(id:number){
+  onAccept(id:number):void{
     const item = this.itemList.find(item => item.id === id);
-    if (item != null) {
-      item.status="DONE";
+
+    if (item?.status ==='INBOX'){
+      item.status="TODO"
+    }
+
+
+  }
+  onDeleteItem(id:number):void{
+    this.itemList=this.itemList.filter(item => item.id !== id);
+  }
+
+  onStart(id:number):void{
+    const item = this.itemList.find(item => item.id === id);
+    if (item?.status === 'TODO' &&  item?.type === 'TASK'){
+      item.status="IN_PROGRESS";
 
     }
 
   }
-  onDeleteItem(id:number){
-    this.itemList=this.itemList.filter(item => item.id !== id);
+  onDone(id:number):void{
+    const item = this.itemList.find(item => item.id === id);
+    if (item?.status === 'IN_PROGRESS' &&  item?.type === 'TASK'){
+      item.status="DONE";
+    }
   }
-  newItemTitle:string='';
- 
-  addItem (){
+
+
+  addItem ():void{
     const listId : Array<number> = this.itemList.map(item => item.id);
     const nextNumber:number = listId.length > 0 ? Math.max(...listId) +1  : 1;
     if (this.newItemTitle.trim() === '') {
@@ -56,15 +75,23 @@ export class Inbox {
     }
    const newItem : WorkspaceItem= {
      id:nextNumber,
-     title:this.newItemTitle,
-     description:"",
-     type:"IDEA",
-     status:"IN_PROGRESS",
+     title:this.newItemTitle.trim(),
+     description:this.newItemDescription.trim(),
+     type:this.newItemType,
+     status:"INBOX",
      createdAt: new Date()
    }
 
    this.itemList.push(newItem);
-   this.newItemTitle = '';
+    this.cleanUp();
+
+
+  }
+  cleanUp():void{
+    this.newItemTitle = '';
+    this.newItemDescription = '';
+    this.newItemType='IDEA';
+
 
 
   }
