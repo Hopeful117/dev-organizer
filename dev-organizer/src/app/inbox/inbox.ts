@@ -1,4 +1,4 @@
-import {Component, computed, signal} from '@angular/core';
+import {Component, computed, effect, signal} from '@angular/core';
 import {ItemType, WorkspaceItem} from '../workspace-item/workspace-item.models';
 import {WorkspaceItemComponent} from '../workspace-item/workspace-item';
 import {FormsModule} from '@angular/forms';
@@ -26,6 +26,18 @@ export class Inbox {
     }
     return this.itemList().filter(item => item.type === this.selectType())
   })
+
+  constructor() {
+    this.mockData();
+    this.loadItems();
+
+    effect(()=>{
+
+     this.saveItems()
+
+    })
+  }
+
 
   putSelectedType(value:ItemType | 'ALL'){
     this.selectType.set(value);
@@ -55,9 +67,32 @@ export class Inbox {
       )
 
   }
-ngOnInit(){
-    this.mockData()
+saveItems(){
+
+
+   let jsonList=JSON.stringify(this.itemList());
+   localStorage.setItem('workspace-items',jsonList);
 }
+loadItems():void{
+    let jsonList : string | null = localStorage.getItem('workspace-items');
+    if (jsonList != null){
+      let items : WorkspaceItem[] = JSON.parse(jsonList);
+      items = items.map((item: WorkspaceItem) => {
+        return {
+          ...item,
+          createdAt: new Date(item.createdAt)
+        };
+      });
+
+    this.itemList.set(items);
+
+
+    }
+
+
+
+}
+
 
 
   onAccept(id:number){
@@ -136,5 +171,5 @@ ngOnInit(){
 
   }
 
-  
+
 }
