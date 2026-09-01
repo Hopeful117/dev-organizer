@@ -17,10 +17,10 @@
   [(ngModel)]="newItemTitle"
   placeholder="Title">
 
-<input
-  type="text"
+<textarea
+  id="description" name="description" rows="5" cols="33"
   [(ngModel)]="newItemDescription"
-  placeholder="Description">
+  placeholder="Description"></textarea>
 
 <div class="itemSelect">
 <label for="itemType">Type</label>
@@ -31,6 +31,7 @@
   <option value="NOTE">Note</option>
 
 </select>
+
 </div>
 
 <button (click)="addItem()">Add item</button>

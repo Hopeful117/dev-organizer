@@ -17,7 +17,7 @@ app-workspace-item {
   margin-bottom: 1rem;
 }
 
-input {
+input,textarea{
   width: min(100%, 420px);
   padding: 0.8rem 1rem;
   margin-top: 1rem;
