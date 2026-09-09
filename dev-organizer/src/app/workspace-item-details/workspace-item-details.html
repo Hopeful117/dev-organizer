@@ -1,0 +1,74 @@
+@if(itemState(); as itemState){
+  @if (itemState.status === 'invalid-id'){
+    <p>
+      L'identifiant est invalide.
+    </p>
+  } @else if (itemState.status === 'not-found'){
+    <p>
+      L'objet demandé n'a pas été trouvé.
+    </p>
+  } @else {
+    <article class="workspace-card">
+      <header class="workspace-card__header">
+        <div>
+          <span class="workspace-card__type">{{ itemState.item.type }}</span>
+          <h3>{{ itemState.item.title }}</h3>
+        </div>
+
+        <span
+          class="workspace-card__status"
+          [class.workspace-card__status--inbox]="itemState.item.status === 'INBOX'"
+          [class.workspace-card__status--todo]="itemState.item.status === 'TODO'"
+          [class.workspace-card__status--progress]="itemState.item.status === 'IN_PROGRESS'"
+          [class.workspace-card__status--done]="itemState.item.status === 'DONE'">
+  {{ itemState.item.status }}
+</span>
+      </header>
+
+      @if (itemState.item.description) {
+        <p class="workspace-card__description">
+          {{ itemState.item.description }}
+        </p>
+      }
+
+      <footer class="workspace-card__footer">
+        <div class="workspace-card__meta">
+          <span>#{{ itemState.item.id }}</span>
+          <span>{{ itemState.item.createdAt | date : 'dd MMM yyyy, HH:mm'}}</span>
+        </div>
+
+        <div class="workspace-card__actions">
+          @if (itemState.item.status === 'INBOX') {
+            <button
+              class="action-button"
+              (click)="onAccept(itemState.item.id)">
+              Accept
+            </button>
+          }
+
+          @if(itemState.item.status ==='TODO' && itemState.item.type ==='TASK'){
+            <button class="action-button"
+                    (click)="onStart(itemState.item.id)"
+            >
+              Start
+
+            </button>
+          }
+          @if(itemState.item.status ==='IN_PROGRESS' && itemState.item.type=== 'TASK'){
+            <button class="action-button" (click)="onDone(itemState.item.id)">
+              Mark as Done
+            </button>
+          }
+
+
+          <button
+            class="action-button action-button--danger"
+            (click)="onDeleteItem(itemState.item.id)">
+            Delete
+          </button>
+        </div>
+      </footer>
+    </article>
+
+  }
+  }

@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Note } from './note';
+import { WorkspaceItemDetails } from './workspace-item-details';
 
-describe('Note', () => {
-  let component: Note;
-  let fixture: ComponentFixture<Note>;
+describe('WorkspaceItemDetails', () => {
+  let component: WorkspaceItemDetails;
+  let fixture: ComponentFixture<WorkspaceItemDetails>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Note],
+      imports: [WorkspaceItemDetails],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Note);
+    fixture = TestBed.createComponent(WorkspaceItemDetails);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
