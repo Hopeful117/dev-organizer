@@ -68,6 +68,9 @@ export class InboxService {
       }
     ))
   }
+  public getItem(id:number):WorkspaceItem | undefined{
+    return this.itemState().find(item => item.id === id)
+  }
 
 
 
