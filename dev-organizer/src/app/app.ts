@@ -4,7 +4,7 @@ import {Inbox} from './inbox/inbox';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Inbox],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

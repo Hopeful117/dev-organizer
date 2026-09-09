@@ -1,10 +1,11 @@
 import {effect, Service, signal} from '@angular/core';
 import {CreateWorkspaceItem, WorkspaceItem} from '../workspace-item/workspace-item.models';
 
+
 @Service()
 export class InboxService {
 
-  private readonly itemState= signal<WorkspaceItem[]>([])
+  readonly itemState= signal<WorkspaceItem[]>([])
   public readonly items=this.itemState.asReadonly()
   constructor(){
     this.mockData()
