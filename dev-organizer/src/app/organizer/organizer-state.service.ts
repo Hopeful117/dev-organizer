@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, forkJoin, Observable } from 'rxjs';
-import { InboxItem, Project, ProjectSummary, WorkItem } from './organizer.models';
+import { AttentionItem, DevlogProjectOption, InboxItem, Project, ProjectSummary, WorkItem } from './organizer.models';
 import { OrganizerApiClient } from './organizer.api';
 
 @Injectable({ providedIn: 'root' })
@@ -11,6 +11,8 @@ export class OrganizerStateService {
   readonly projects = signal<Project[]>([]);
   readonly inboxItems = signal<InboxItem[]>([]);
   readonly workItems = signal<WorkItem[]>([]);
+  readonly attentions = signal<AttentionItem[]>([]);
+  readonly devlogProjects = signal<DevlogProjectOption[]>([]);
   readonly activeProjects = computed(() => this.projects().filter(project => project.status === 'ACTIVE'));
   readonly inProgressWork = computed(() => this.workItems().filter(item => item.status === 'IN_PROGRESS'));
   readonly todoWork = computed(() => this.workItems().filter(item => item.status === 'TODO'));
@@ -24,6 +26,8 @@ export class OrganizerStateService {
   readonly isLoading = signal(false);
   readonly actionInProgress = signal<string | null>(null);
   readonly error = signal<string | null>(null);
+  readonly attentionError = signal<string | null>(null);
+  readonly attentionLoading = signal(false);
 
   async loadAll(): Promise<void> {
     this.isLoading.set(true);
@@ -94,6 +98,54 @@ export class OrganizerStateService {
 
   async completeWorkItem(id: string): Promise<boolean> {
     return this.updateWorkItem('complete', () => this.api.completeWorkItem(id), id);
+  }
+
+  async loadDevlogProjects(): Promise<void> {
+    try {
+      this.devlogProjects.set(await firstValueFrom(this.api.listDevlogProjects()));
+    } catch {
+      this.devlogProjects.set([]);
+    }
+  }
+
+  async refreshAttention(): Promise<void> {
+    this.attentionLoading.set(true);
+    this.attentionError.set(null);
+    try {
+      const result = await firstValueFrom(this.api.refreshAttention());
+      this.attentions.set(result.items);
+      if (result.errors.length > 0) {
+        this.attentionError.set('DevLog is unavailable for one or more linked projects.');
+      }
+    } catch {
+      this.attentionError.set('DevLog attention could not be refreshed.');
+    } finally {
+      this.attentionLoading.set(false);
+    }
+  }
+
+  async linkDevlogProject(projectId: string, devlogProjectId: string, devlogProjectSlug: string): Promise<boolean> {
+    return this.runAction('link-devlog', () => this.api.linkDevlogProject(projectId, devlogProjectId, devlogProjectSlug), project => {
+      this.projects.update(projects => projects.map(existing => existing.id === project.id ? project : existing));
+    });
+  }
+
+  async unlinkDevlogProject(projectId: string): Promise<boolean> {
+    return this.runAction('unlink-devlog', () => this.api.unlinkDevlogProject(projectId), project => {
+      this.projects.update(projects => projects.map(existing => existing.id === project.id ? project : existing));
+    });
+  }
+
+  async acknowledgeAttention(id: string): Promise<boolean> {
+    return this.runAction('acknowledge-attention', () => this.api.acknowledgeAttention(id), () => {
+      this.attentions.update(items => items.filter(item => item.id !== id));
+    });
+  }
+
+  async dismissAttention(id: string): Promise<boolean> {
+    return this.runAction('dismiss-attention', () => this.api.dismissAttention(id), () => {
+      this.attentions.update(items => items.filter(item => item.id !== id));
+    });
   }
 
   setError(error: unknown): void {

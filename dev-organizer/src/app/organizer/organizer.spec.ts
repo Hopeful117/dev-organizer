@@ -16,10 +16,16 @@ describe('OrganizerHome', () => {
     inProgressWork: signal<WorkItem[]>([]),
     todoWork: signal<WorkItem[]>([]),
     projectSummaries: signal<ProjectSummary[]>([]),
+    attentions: signal([]),
+    devlogProjects: signal([]),
     isLoading: signal(false),
     actionInProgress: signal<string | null>(null),
     error: signal<string | null>(null),
+    attentionError: signal<string | null>(null),
+    attentionLoading: signal(false),
     loadAll: vi.fn(() => Promise.resolve()),
+    refreshAttention: vi.fn(() => Promise.resolve()),
+    loadDevlogProjects: vi.fn(() => Promise.resolve()),
     capture: vi.fn(() => Promise.resolve(true)),
     createProject: vi.fn(() => Promise.resolve(true)),
     setError: vi.fn(),
@@ -30,6 +36,10 @@ describe('OrganizerHome', () => {
     startWorkItem: vi.fn(() => Promise.resolve(true)),
     completeWorkItem: vi.fn(() => Promise.resolve(true)),
     archiveProject: vi.fn(() => Promise.resolve(true)),
+    linkDevlogProject: vi.fn(() => Promise.resolve(true)),
+    unlinkDevlogProject: vi.fn(() => Promise.resolve(true)),
+    acknowledgeAttention: vi.fn(() => Promise.resolve(true)),
+    dismissAttention: vi.fn(() => Promise.resolve(true)),
   };
 
   beforeEach(async () => {

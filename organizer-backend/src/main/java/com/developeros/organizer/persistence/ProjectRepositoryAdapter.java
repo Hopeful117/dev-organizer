@@ -1,6 +1,7 @@
 package com.developeros.organizer.persistence;
 
 import com.developeros.organizer.domain.Project;
+import com.developeros.organizer.domain.DevlogProjectReference;
 import com.developeros.organizer.domain.ProjectRepository;
 import org.springframework.stereotype.Repository;
 
@@ -32,10 +33,17 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     }
 
     private static ProjectJpaEntity toEntity(Project project) {
-        return new ProjectJpaEntity(project.id(), project.name(), project.status(), project.createdAt(), project.updatedAt());
+        var devlogProject = project.devlogProject();
+        return new ProjectJpaEntity(project.id(), project.name(), project.status(),
+                devlogProject == null ? null : devlogProject.id(),
+                devlogProject == null ? null : devlogProject.slug(),
+                project.createdAt(), project.updatedAt());
     }
 
     private static Project toDomain(ProjectJpaEntity entity) {
-        return Project.rehydrate(entity.getId(), entity.getName(), entity.getStatus(), entity.getCreatedAt(), entity.getUpdatedAt());
+        DevlogProjectReference devlogProject = entity.getDevlogProjectId() == null ? null
+                : new DevlogProjectReference(entity.getDevlogProjectId(), entity.getDevlogProjectSlug());
+        return Project.rehydrate(entity.getId(), entity.getName(), entity.getStatus(), devlogProject,
+                entity.getCreatedAt(), entity.getUpdatedAt());
     }
 }

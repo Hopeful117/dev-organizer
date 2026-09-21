@@ -6,8 +6,39 @@ export interface Project {
   id: string;
   name: string;
   status: ProjectStatus;
+  devlogProject: DevlogProjectReference | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DevlogProjectReference {
+  id: string;
+  slug: string;
+}
+
+export interface DevlogProjectOption extends DevlogProjectReference {
+  name: string;
+  status: string;
+}
+
+export type AttentionState = 'OPEN' | 'ACKNOWLEDGED';
+
+export interface AttentionItem {
+  id: string;
+  projectId: string;
+  source: 'DEVLOG';
+  reason: string;
+  guidance: string;
+  observedAt: string;
+  state: AttentionState;
+  sourceReference: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AttentionRefreshResponse {
+  items: AttentionItem[];
+  errors: Array<{ projectId: string; message: string }>;
 }
 
 export interface InboxItem {

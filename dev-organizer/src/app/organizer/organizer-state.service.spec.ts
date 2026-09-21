@@ -22,7 +22,7 @@ describe('OrganizerStateService', () => {
     const load = state.loadAll();
 
     http.expectOne('/api/v1/projects').flush([
-      { id: 'project-1', name: 'Organizer', status: 'ACTIVE', createdAt: '', updatedAt: '' },
+       { id: 'project-1', name: 'Organizer', status: 'ACTIVE', devlogProject: null, createdAt: '', updatedAt: '' },
     ]);
     http.expectOne('/api/v1/inbox').flush([
       { id: 'inbox-1', content: 'Capture', projectId: 'project-1', status: 'CAPTURED', createdAt: '' },
@@ -30,7 +30,6 @@ describe('OrganizerStateService', () => {
     http.expectOne('/api/v1/work').flush([
       { id: 'work-1', title: 'Work', description: null, projectId: 'project-1', status: 'TODO', createdAt: '', updatedAt: '' },
     ]);
-
     await load;
 
     expect(state.projects()).toHaveLength(1);

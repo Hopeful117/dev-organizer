@@ -20,6 +20,12 @@ public class ProjectJpaEntity {
     @Column(nullable = false, length = 200)
     private String name;
 
+    @Column(name = "devlog_project_id")
+    private UUID devlogProjectId;
+
+    @Column(name = "devlog_project_slug", length = 100)
+    private String devlogProjectSlug;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ProjectStatus status;
@@ -33,10 +39,13 @@ public class ProjectJpaEntity {
     protected ProjectJpaEntity() {
     }
 
-    public ProjectJpaEntity(UUID id, String name, ProjectStatus status, Instant createdAt, Instant updatedAt) {
+    public ProjectJpaEntity(UUID id, String name, ProjectStatus status, UUID devlogProjectId,
+                            String devlogProjectSlug, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.name = name;
         this.status = status;
+        this.devlogProjectId = devlogProjectId;
+        this.devlogProjectSlug = devlogProjectSlug;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -44,6 +53,8 @@ public class ProjectJpaEntity {
     public UUID getId() { return id; }
     public String getName() { return name; }
     public ProjectStatus getStatus() { return status; }
+    public UUID getDevlogProjectId() { return devlogProjectId; }
+    public String getDevlogProjectSlug() { return devlogProjectSlug; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

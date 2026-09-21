@@ -2,6 +2,7 @@ package com.developeros.organizer.application;
 
 import com.developeros.organizer.domain.Project;
 import com.developeros.organizer.domain.ProjectRepository;
+import com.developeros.organizer.domain.DevlogProjectReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,5 +47,17 @@ public class ProjectApplicationService {
         if (id != null && projectRepository.findById(id).isEmpty()) {
             throw new ResourceNotFoundException("Project not found: " + id);
         }
+    }
+
+    public Project linkDevlogProject(UUID projectId, UUID devlogProjectId, String devlogProjectSlug) {
+        Project project = get(projectId);
+        project.linkDevlogProject(new DevlogProjectReference(devlogProjectId, devlogProjectSlug), Instant.now(clock));
+        return projectRepository.save(project);
+    }
+
+    public Project unlinkDevlogProject(UUID projectId) {
+        Project project = get(projectId);
+        project.unlinkDevlogProject(Instant.now(clock));
+        return projectRepository.save(project);
     }
 }

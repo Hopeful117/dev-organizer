@@ -47,6 +47,47 @@
     }
   </section>
 
+  <section class="attention-section" aria-labelledby="attention-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">NEEDS REVIEW</p>
+        <h2 id="attention-title">Attention</h2>
+      </div>
+      <span class="count-badge">{{ state.attentions().length }}</span>
+    </div>
+
+    @if (state.attentionLoading()) {
+      <p class="empty-state">Checking linked DevLog projects...</p>
+    } @else if (state.attentions().length === 0) {
+      <p class="empty-state">No linked project signals need your attention.</p>
+    } @else {
+      <div class="attention-list">
+        @for (item of state.attentions(); track item.id) {
+          <article class="attention-card">
+            <div class="attention-card__body">
+              <div class="item-card__topline">
+                <span class="status-chip status-chip--attention">DEVLOG</span>
+                <time [dateTime]="item.observedAt">Observed {{ item.observedAt | date : 'dd MMM yyyy, HH:mm' }}</time>
+              </div>
+              <p class="attention-project">{{ projectLabel(item.projectId) }}</p>
+              <h3>{{ item.reason }}</h3>
+              <p class="attention-guidance">{{ guidanceLabel(item.guidance) }}</p>
+            </div>
+            <div class="attention-actions">
+              <button type="button" class="secondary-button" (click)="inspectAttention(item.sourceReference)">Inspect</button>
+              <button type="button" class="quiet-button" title="Mark this signal as reviewed" (click)="state.acknowledgeAttention(item.id)">Acknowledge</button>
+              <button type="button" class="quiet-button" title="Remove this signal from current attention" (click)="state.dismissAttention(item.id)">Dismiss</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    @if (state.attentionError(); as attentionError) {
+      <p class="integration-message" role="status">{{ attentionError }}</p>
+    }
+  </section>
+
   <section class="capture-panel" aria-labelledby="capture-title">
     <div class="capture-label">
       <p class="eyebrow">QUICK CAPTURE</p>
@@ -195,7 +236,7 @@
       </form>
 
       <div class="project-list">
-          @for (summary of state.projectSummaries(); track summary.project.id) {
+        @for (summary of state.projectSummaries(); track summary.project.id) {
           <div class="project-row">
             <div class="project-identity">
               <strong>{{ summary.project.name }}</strong>
@@ -203,12 +244,32 @@
                 <span>{{ summary.activeWorkCount }} active</span>
                 <span>{{ summary.inboxCount }} inbox</span>
               </div>
+              @if (summary.project.devlogProject; as devlogProject) {
+                <p class="project-link">DEVLOG / {{ devlogProject.slug }}</p>
+              } @else {
+                <div class="project-link-form">
+                  <select
+                    [(ngModel)]="devlogProjectSelection[summary.project.id]"
+                    [attr.aria-label]="'DevLog project for ' + summary.project.name">
+                    <option value="">Link DevLog project</option>
+                    @for (devlogProject of state.devlogProjects(); track devlogProject.id) {
+                      <option [value]="devlogProject.id">{{ devlogProject.name }}</option>
+                    }
+                  </select>
+                  <button type="button" class="quiet-button" (click)="linkDevlogProject(summary.project.id)">Link</button>
+                </div>
+              }
             </div>
-            <button
-              type="button"
-              class="quiet-button"
-              [disabled]="state.actionInProgress() !== null"
-              (click)="state.archiveProject(summary.project.id)">Archive</button>
+            <div class="project-actions">
+              @if (summary.project.devlogProject) {
+                <button type="button" class="quiet-button" (click)="unlinkDevlogProject(summary.project.id)">Unlink</button>
+              }
+              <button
+                type="button"
+                class="quiet-button"
+                [disabled]="state.actionInProgress() !== null"
+                (click)="state.archiveProject(summary.project.id)">Archive</button>
+            </div>
           </div>
         } @empty {
           <p class="empty-state">Create a project to give your work a home.</p>

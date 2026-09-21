@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { InboxItem, Project, WorkItem } from './organizer.models';
+import { AttentionItem, AttentionRefreshResponse, DevlogProjectOption, InboxItem, Project, WorkItem } from './organizer.models';
 
 interface ProjectCreateRequest {
   name: string;
@@ -33,6 +33,21 @@ export class OrganizerApiClient {
 
   listProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.baseUrl}/projects`);
+  }
+
+  listDevlogProjects(): Observable<DevlogProjectOption[]> {
+    return this.http.get<DevlogProjectOption[]>(`${this.baseUrl}/integrations/devlog/projects`);
+  }
+
+  linkDevlogProject(projectId: string, devlogProjectId: string, devlogProjectSlug: string): Observable<Project> {
+    return this.http.put<Project>(`${this.baseUrl}/projects/${projectId}/devlog`, {
+      devlogProjectId,
+      devlogProjectSlug,
+    });
+  }
+
+  unlinkDevlogProject(projectId: string): Observable<Project> {
+    return this.http.delete<Project>(`${this.baseUrl}/projects/${projectId}/devlog`);
   }
 
   archiveProject(id: string): Observable<Project> {
@@ -81,5 +96,17 @@ export class OrganizerApiClient {
 
   completeWorkItem(id: string): Observable<WorkItem> {
     return this.http.post<WorkItem>(`${this.baseUrl}/work/${id}/complete`, {});
+  }
+
+  refreshAttention(): Observable<AttentionRefreshResponse> {
+    return this.http.post<AttentionRefreshResponse>(`${this.baseUrl}/attention/refresh`, {});
+  }
+
+  acknowledgeAttention(id: string): Observable<AttentionItem> {
+    return this.http.post<AttentionItem>(`${this.baseUrl}/attention/${id}/acknowledge`, {});
+  }
+
+  dismissAttention(id: string): Observable<AttentionItem> {
+    return this.http.post<AttentionItem>(`${this.baseUrl}/attention/${id}/dismiss`, {});
   }
 }

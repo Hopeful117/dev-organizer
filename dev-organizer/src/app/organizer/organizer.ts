@@ -16,9 +16,12 @@ export class OrganizerHome implements OnInit {
   projectName = '';
   readonly inboxProjectSelection: Record<string, string> = {};
   readonly workProjectSelection: Record<string, string> = {};
+  readonly devlogProjectSelection: Record<string, string> = {};
 
   ngOnInit(): void {
     void this.state.loadAll();
+    void this.state.refreshAttention();
+    void this.state.loadDevlogProjects();
   }
 
   async capture(): Promise<void> {
@@ -55,5 +58,33 @@ export class OrganizerHome implements OnInit {
   async setWorkProject(id: string, projectId: string): Promise<void> {
     this.workProjectSelection[id] = projectId;
     await this.state.associateWorkItem(id, projectId || null);
+  }
+
+  async linkDevlogProject(projectId: string): Promise<void> {
+    const devlogProjectId = this.devlogProjectSelection[projectId];
+    const devlogProject = this.state.devlogProjects().find(project => project.id === devlogProjectId);
+    if (!devlogProject) {
+      this.state.setError('Select a DevLog project before linking.');
+      return;
+    }
+    if (await this.state.linkDevlogProject(projectId, devlogProject.id, devlogProject.slug)) {
+      delete this.devlogProjectSelection[projectId];
+    }
+  }
+
+  async unlinkDevlogProject(projectId: string): Promise<void> {
+    await this.state.unlinkDevlogProject(projectId);
+  }
+
+  projectLabel(projectId: string): string {
+    return this.state.projects().find(project => project.id === projectId)?.name ?? 'Linked project';
+  }
+
+  guidanceLabel(guidance: string): string {
+    return guidance === 'REFRESH_RECOMMENDED' ? 'Refresh recommended' : guidance;
+  }
+
+  inspectAttention(sourceReference: string): void {
+    window.open(sourceReference, '_blank', 'noopener,noreferrer');
   }
 }
