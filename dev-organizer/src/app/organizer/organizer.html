@@ -1,0 +1,163 @@
+<main class="organizer-shell">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">DEVELOPER OS</p>
+      <h1>Organizer</h1>
+      <p class="page-intro">Capture what matters, organize it, and move the right work forward.</p>
+    </div>
+  </header>
+
+  @if (state.error(); as error) {
+    <p class="error-message" role="alert">{{ error }}</p>
+  }
+
+  <section class="capture-panel" aria-labelledby="capture-title">
+    <div>
+      <p class="eyebrow">QUICK CAPTURE</p>
+      <h2 id="capture-title">Put it somewhere safe</h2>
+    </div>
+    <textarea
+      [(ngModel)]="captureContent"
+      rows="3"
+      placeholder="What needs your attention later?"
+      aria-label="Capture content"></textarea>
+    <div class="capture-actions">
+      <select [(ngModel)]="captureProjectId" aria-label="Optional capture project">
+        <option value="">No project</option>
+        @for (project of state.activeProjects(); track project.id) {
+          <option [value]="project.id">{{ project.name }}</option>
+        }
+      </select>
+      <button class="primary-button" type="button" (click)="capture()">Capture</button>
+    </div>
+  </section>
+
+  <div class="organizer-grid">
+    <section class="content-section" aria-labelledby="work-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ACTIONABLE</p>
+          <h2 id="work-title">Active Work</h2>
+        </div>
+        <span class="count-badge">{{ state.activeWork().length }}</span>
+      </div>
+
+      @if (state.activeWork().length === 0) {
+        <p class="empty-state">No active work yet. Promote something from the Inbox when it becomes actionable.</p>
+      }
+
+      @for (item of state.activeWork(); track item.id) {
+        <article class="item-card">
+          <div class="item-card__topline">
+            <span class="status-chip" [class]="'status-chip status-chip--' + item.status.toLowerCase()">{{ item.status }}</span>
+            <time [dateTime]="item.createdAt">{{ item.createdAt | date : 'dd MMM yyyy, HH:mm' }}</time>
+          </div>
+          <h3>{{ item.title }}</h3>
+          @if (item.description) {
+            <p>{{ item.description }}</p>
+          }
+          <div class="item-card__footer">
+            <select
+              [ngModel]="workProjectSelection[item.id] ?? item.projectId ?? ''"
+              (ngModelChange)="setWorkProject(item.id, $event)"
+              aria-label="Work project">
+              <option value="">No project</option>
+              @for (project of state.activeProjects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
+            </select>
+            <div class="item-actions">
+              @if (item.status === 'TODO') {
+                <button type="button" class="secondary-button" (click)="state.startWorkItem(item.id)">Start</button>
+              } @else if (item.status === 'IN_PROGRESS') {
+                <button type="button" class="secondary-button" (click)="state.completeWorkItem(item.id)">Complete</button>
+              }
+            </div>
+          </div>
+        </article>
+      }
+
+      @if (state.completedWork().length > 0) {
+        <p class="subsection-label">Completed</p>
+        @for (item of state.completedWork(); track item.id) {
+          <article class="item-card item-card--completed">
+            <div class="item-card__topline">
+              <span class="status-chip status-chip--done">DONE</span>
+              <time [dateTime]="item.updatedAt">{{ item.updatedAt | date : 'dd MMM yyyy, HH:mm' }}</time>
+            </div>
+            <h3>{{ item.title }}</h3>
+          </article>
+        }
+      }
+    </section>
+
+    <section class="content-section" aria-labelledby="inbox-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">UNORGANIZED</p>
+          <h2 id="inbox-title">Inbox</h2>
+        </div>
+        <span class="count-badge">{{ state.inboxItems().length }}</span>
+      </div>
+
+      @if (state.inboxItems().length === 0) {
+        <p class="empty-state">Your Inbox is clear.</p>
+      }
+
+      @for (item of state.inboxItems(); track item.id) {
+        <article class="item-card">
+          <div class="item-card__topline">
+            <span class="status-chip status-chip--captured">CAPTURED</span>
+            <time [dateTime]="item.createdAt">{{ item.createdAt | date : 'dd MMM yyyy, HH:mm' }}</time>
+          </div>
+          <h3>{{ item.content }}</h3>
+          <div class="item-card__footer">
+            <select
+              [ngModel]="inboxProjectSelection[item.id] ?? item.projectId ?? ''"
+              (ngModelChange)="setInboxProject(item.id, $event)"
+              aria-label="Inbox project">
+              <option value="">No project</option>
+              @for (project of state.activeProjects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
+            </select>
+            <div class="item-actions">
+              <button type="button" class="secondary-button" (click)="state.promoteInboxItem(item.id)">Promote</button>
+              <button type="button" class="quiet-button" (click)="state.dismissInboxItem(item.id)">Dismiss</button>
+            </div>
+          </div>
+        </article>
+      }
+    </section>
+
+    <section class="content-section projects-section" aria-labelledby="projects-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ORGANIZATIONAL SCOPE</p>
+          <h2 id="projects-title">Projects</h2>
+        </div>
+        <span class="count-badge">{{ state.activeProjects().length }}</span>
+      </div>
+
+      <form class="project-form" (ngSubmit)="createProject()">
+        <input [(ngModel)]="projectName" name="projectName" placeholder="New project name" aria-label="Project name">
+        <button class="primary-button" type="submit">Create</button>
+      </form>
+
+      <div class="project-list">
+        @for (project of state.activeProjects(); track project.id) {
+          <div class="project-row">
+            <span>{{ project.name }}</span>
+            <button type="button" class="quiet-button" (click)="state.archiveProject(project.id)">Archive</button>
+          </div>
+        } @empty {
+          <p class="empty-state">Create a project to give your work a home.</p>
+        }
+      </div>
+    </section>
+  </div>
+
+  @if (state.isLoading()) {
+    <p class="loading-message" role="status">Loading Organizer...</p>
+  }
+</main>
