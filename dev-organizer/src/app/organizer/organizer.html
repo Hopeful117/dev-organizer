@@ -3,7 +3,7 @@
     <div>
       <p class="eyebrow">DEVELOPER OS</p>
       <h1>Organizer</h1>
-      <p class="page-intro">Capture what matters, organize it, and move the right work forward.</p>
+      <p class="page-intro">Capture what matters, organize it, and continue the work that is already moving.</p>
     </div>
   </header>
 
@@ -28,69 +28,48 @@
           <option [value]="project.id">{{ project.name }}</option>
         }
       </select>
-      <button class="primary-button" type="button" (click)="capture()">Capture</button>
+      <button
+        class="primary-button"
+        type="button"
+        [disabled]="state.actionInProgress() !== null"
+        (click)="capture()">Capture</button>
     </div>
   </section>
 
-  <div class="organizer-grid">
-    <section class="content-section" aria-labelledby="work-title">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">ACTIONABLE</p>
-          <h2 id="work-title">Active Work</h2>
-        </div>
-        <span class="count-badge">{{ state.activeWork().length }}</span>
+  <section class="continue-section" aria-labelledby="continue-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">IN MOTION</p>
+        <h2 id="continue-title">Continue</h2>
       </div>
+      <span class="count-badge">{{ state.inProgressWork().length }}</span>
+    </div>
 
-      @if (state.activeWork().length === 0) {
-        <p class="empty-state">No active work yet. Promote something from the Inbox when it becomes actionable.</p>
-      }
-
-      @for (item of state.activeWork(); track item.id) {
-        <article class="item-card">
-          <div class="item-card__topline">
-            <span class="status-chip" [class]="'status-chip status-chip--' + item.status.toLowerCase()">{{ item.status }}</span>
-            <time [dateTime]="item.createdAt">{{ item.createdAt | date : 'dd MMM yyyy, HH:mm' }}</time>
-          </div>
-          <h3>{{ item.title }}</h3>
-          @if (item.description) {
-            <p>{{ item.description }}</p>
-          }
-          <div class="item-card__footer">
-            <select
-              [ngModel]="workProjectSelection[item.id] ?? item.projectId ?? ''"
-              (ngModelChange)="setWorkProject(item.id, $event)"
-              aria-label="Work project">
-              <option value="">No project</option>
-              @for (project of state.activeProjects(); track project.id) {
-                <option [value]="project.id">{{ project.name }}</option>
-              }
-            </select>
-            <div class="item-actions">
-              @if (item.status === 'TODO') {
-                <button type="button" class="secondary-button" (click)="state.startWorkItem(item.id)">Start</button>
-              } @else if (item.status === 'IN_PROGRESS') {
-                <button type="button" class="secondary-button" (click)="state.completeWorkItem(item.id)">Complete</button>
+    @if (state.inProgressWork().length === 0) {
+      <p class="empty-state">Nothing is currently in progress. Start a TODO when you are ready to move.</p>
+    } @else {
+      <div class="continue-list">
+        @for (item of state.inProgressWork(); track item.id) {
+          <article class="continue-item">
+            <div>
+              <span class="status-chip status-chip--in_progress">IN PROGRESS</span>
+              <h3>{{ item.title }}</h3>
+              @if (item.description) {
+                <p>{{ item.description }}</p>
               }
             </div>
-          </div>
-        </article>
-      }
-
-      @if (state.completedWork().length > 0) {
-        <p class="subsection-label">Completed</p>
-        @for (item of state.completedWork(); track item.id) {
-          <article class="item-card item-card--completed">
-            <div class="item-card__topline">
-              <span class="status-chip status-chip--done">DONE</span>
-              <time [dateTime]="item.updatedAt">{{ item.updatedAt | date : 'dd MMM yyyy, HH:mm' }}</time>
-            </div>
-            <h3>{{ item.title }}</h3>
+            <button
+              class="secondary-button"
+              type="button"
+              [disabled]="state.actionInProgress() !== null"
+              (click)="state.completeWorkItem(item.id)">Complete</button>
           </article>
         }
-      }
-    </section>
+      </div>
+    }
+  </section>
 
+  <div class="organizer-grid">
     <section class="content-section" aria-labelledby="inbox-title">
       <div class="section-heading">
         <div>
@@ -122,11 +101,74 @@
               }
             </select>
             <div class="item-actions">
-              <button type="button" class="secondary-button" (click)="state.promoteInboxItem(item.id)">Promote</button>
-              <button type="button" class="quiet-button" (click)="state.dismissInboxItem(item.id)">Dismiss</button>
+              <button
+                type="button"
+                class="secondary-button"
+                [disabled]="state.actionInProgress() !== null"
+                (click)="state.promoteInboxItem(item.id)">Promote</button>
+              <button
+                type="button"
+                class="quiet-button"
+                [disabled]="state.actionInProgress() !== null"
+                (click)="state.dismissInboxItem(item.id)">Dismiss</button>
             </div>
           </div>
         </article>
+      }
+    </section>
+
+    <section class="content-section" aria-labelledby="work-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ACTIONABLE</p>
+          <h2 id="work-title">Work</h2>
+        </div>
+        <span class="count-badge">{{ state.workItems().length }}</span>
+      </div>
+
+      @if (state.workItems().length === 0) {
+        <p class="empty-state">No work yet. Promote an Inbox item when it becomes actionable.</p>
+      }
+
+      @for (item of state.todoWork(); track item.id) {
+        <article class="item-card">
+          <div class="item-card__topline">
+            <span class="status-chip status-chip--todo">TODO</span>
+          </div>
+          <h3>{{ item.title }}</h3>
+          @if (item.description) {
+            <p>{{ item.description }}</p>
+          }
+          <div class="item-card__footer">
+            <select
+              [ngModel]="workProjectSelection[item.id] ?? item.projectId ?? ''"
+              (ngModelChange)="setWorkProject(item.id, $event)"
+              aria-label="Work project">
+              <option value="">No project</option>
+              @for (project of state.activeProjects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
+            </select>
+            <button
+              type="button"
+              class="secondary-button"
+              [disabled]="state.actionInProgress() !== null"
+              (click)="state.startWorkItem(item.id)">Start</button>
+          </div>
+        </article>
+      }
+
+      @if (state.completedWork().length > 0) {
+        <p class="subsection-label">Recently completed</p>
+        @for (item of state.completedWork(); track item.id) {
+          <article class="item-card item-card--completed">
+            <div class="item-card__topline">
+              <span class="status-chip status-chip--done">DONE</span>
+              <time [dateTime]="item.updatedAt">{{ item.updatedAt | date : 'dd MMM yyyy, HH:mm' }}</time>
+            </div>
+            <h3>{{ item.title }}</h3>
+          </article>
+        }
       }
     </section>
 
@@ -141,14 +183,24 @@
 
       <form class="project-form" (ngSubmit)="createProject()">
         <input [(ngModel)]="projectName" name="projectName" placeholder="New project name" aria-label="Project name">
-        <button class="primary-button" type="submit">Create</button>
+        <button
+          class="primary-button"
+          type="submit"
+          [disabled]="state.actionInProgress() !== null">Create</button>
       </form>
 
       <div class="project-list">
-        @for (project of state.activeProjects(); track project.id) {
+        @for (summary of state.projectSummaries(); track summary.project.id) {
           <div class="project-row">
-            <span>{{ project.name }}</span>
-            <button type="button" class="quiet-button" (click)="state.archiveProject(project.id)">Archive</button>
+            <div>
+              <strong>{{ summary.project.name }}</strong>
+              <p>{{ summary.activeWorkCount }} active work items · {{ summary.inboxCount }} inbox items</p>
+            </div>
+            <button
+              type="button"
+              class="quiet-button"
+              [disabled]="state.actionInProgress() !== null"
+              (click)="state.archiveProject(summary.project.id)">Archive</button>
           </div>
         } @empty {
           <p class="empty-state">Create a project to give your work a home.</p>
@@ -159,5 +211,7 @@
 
   @if (state.isLoading()) {
     <p class="loading-message" role="status">Loading Organizer...</p>
+  } @else if (state.actionInProgress(); as action) {
+    <p class="loading-message" role="status">{{ action }} in progress...</p>
   }
 </main>

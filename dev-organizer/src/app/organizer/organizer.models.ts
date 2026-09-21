@@ -27,3 +27,9 @@ export interface WorkItem {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ProjectSummary {
+  project: Project;
+  activeWorkCount: number;
+  inboxCount: number;
+}

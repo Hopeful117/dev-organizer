@@ -2,17 +2,22 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { OrganizerHome } from './organizer';
 import { OrganizerStateService } from './organizer-state.service';
+import { InboxItem, ProjectSummary, WorkItem } from './organizer.models';
 
 describe('OrganizerHome', () => {
   let fixture: ComponentFixture<OrganizerHome>;
   const state = {
     projects: signal([]),
     activeProjects: signal([]),
-    inboxItems: signal([]),
-    workItems: signal([]),
-    activeWork: signal([]),
-    completedWork: signal([]),
+    inboxItems: signal<InboxItem[]>([]),
+    workItems: signal<WorkItem[]>([]),
+    activeWork: signal<WorkItem[]>([]),
+    completedWork: signal<WorkItem[]>([]),
+    inProgressWork: signal<WorkItem[]>([]),
+    todoWork: signal<WorkItem[]>([]),
+    projectSummaries: signal<ProjectSummary[]>([]),
     isLoading: signal(false),
+    actionInProgress: signal<string | null>(null),
     error: signal<string | null>(null),
     loadAll: vi.fn(() => Promise.resolve()),
     capture: vi.fn(() => Promise.resolve(true)),
@@ -28,6 +33,13 @@ describe('OrganizerHome', () => {
   };
 
   beforeEach(async () => {
+    state.inboxItems.set([]);
+    state.workItems.set([]);
+    state.activeWork.set([]);
+    state.completedWork.set([]);
+    state.inProgressWork.set([]);
+    state.todoWork.set([]);
+    state.projectSummaries.set([]);
     await TestBed.configureTestingModule({
       imports: [OrganizerHome],
       providers: [{ provide: OrganizerStateService, useValue: state }],
@@ -40,9 +52,33 @@ describe('OrganizerHome', () => {
   it('loads the Organizer state and renders the three home areas', () => {
     expect(state.loadAll).toHaveBeenCalled();
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Active Work');
+    expect(text).toContain('Continue');
+    expect(text).toContain('Work');
     expect(text).toContain('Inbox');
     expect(text).toContain('Projects');
+    expect(text).toContain('No work yet');
+  });
+
+  it('presents in-progress and TODO work in their respective Home areas', () => {
+    const inProgress: WorkItem = {
+      id: 'work-1', title: 'Continue API work', description: null, projectId: null,
+      status: 'IN_PROGRESS', createdAt: '', updatedAt: '',
+    };
+    const todo: WorkItem = {
+      id: 'work-2', title: 'Review API contract', description: null, projectId: null,
+      status: 'TODO', createdAt: '', updatedAt: '',
+    };
+    state.workItems.set([inProgress, todo]);
+    state.activeWork.set([inProgress, todo]);
+    state.inProgressWork.set([inProgress]);
+    state.todoWork.set([todo]);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Continue API work');
+    expect(text).toContain('Review API contract');
+    expect(text).toContain('IN PROGRESS');
+    expect(text).toContain('TODO');
   });
 
   it('delegates capture to the server state service and clears the input', async () => {

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom, forkJoin } from 'rxjs';
-import { InboxItem, Project, WorkItem } from './organizer.models';
+import { firstValueFrom, forkJoin, Observable } from 'rxjs';
+import { InboxItem, Project, ProjectSummary, WorkItem } from './organizer.models';
 import { OrganizerApiClient } from './organizer.api';
 
 @Injectable({ providedIn: 'root' })
@@ -12,9 +12,17 @@ export class OrganizerStateService {
   readonly inboxItems = signal<InboxItem[]>([]);
   readonly workItems = signal<WorkItem[]>([]);
   readonly activeProjects = computed(() => this.projects().filter(project => project.status === 'ACTIVE'));
+  readonly inProgressWork = computed(() => this.workItems().filter(item => item.status === 'IN_PROGRESS'));
+  readonly todoWork = computed(() => this.workItems().filter(item => item.status === 'TODO'));
   readonly activeWork = computed(() => this.workItems().filter(item => item.status !== 'DONE'));
   readonly completedWork = computed(() => this.workItems().filter(item => item.status === 'DONE'));
+  readonly projectSummaries = computed<ProjectSummary[]>(() => this.activeProjects().map(project => ({
+    project,
+    activeWorkCount: this.activeWork().filter(item => item.projectId === project.id).length,
+    inboxCount: this.inboxItems().filter(item => item.projectId === project.id).length,
+  })));
   readonly isLoading = signal(false);
+  readonly actionInProgress = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
   async loadAll(): Promise<void> {
@@ -38,96 +46,54 @@ export class OrganizerStateService {
   }
 
   async capture(content: string, projectId: string | null): Promise<boolean> {
-    try {
-      const item = await firstValueFrom(this.api.capture(content, projectId));
+    return this.runAction('capture', () => this.api.capture(content, projectId), item => {
       this.inboxItems.update(items => [item, ...items]);
-      this.error.set(null);
-      return true;
-    } catch (error) {
-      this.setError(error);
-      return false;
-    }
+    });
   }
 
   async dismissInboxItem(id: string): Promise<boolean> {
-    try {
-      await firstValueFrom(this.api.dismissInboxItem(id));
+    return this.runAction('dismiss', () => this.api.dismissInboxItem(id), () => {
       this.inboxItems.update(items => items.filter(item => item.id !== id));
-      this.error.set(null);
-      return true;
-    } catch (error) {
-      this.setError(error);
-      return false;
-    }
+    });
   }
 
   async associateInboxItem(id: string, projectId: string | null): Promise<boolean> {
-    try {
-      const item = await firstValueFrom(this.api.associateInboxItem(id, projectId));
+    return this.runAction('associate-inbox', () => this.api.associateInboxItem(id, projectId), item => {
       this.inboxItems.update(items => items.map(existing => existing.id === id ? item : existing));
-      this.error.set(null);
-      return true;
-    } catch (error) {
-      this.setError(error);
-      return false;
-    }
+    });
   }
 
   async promoteInboxItem(id: string): Promise<boolean> {
-    try {
-      const workItem = await firstValueFrom(this.api.promoteInboxItem(id));
+    return this.runAction('promote', () => this.api.promoteInboxItem(id), workItem => {
       this.inboxItems.update(items => items.filter(item => item.id !== id));
       this.workItems.update(items => [workItem, ...items]);
-      this.error.set(null);
-      return true;
-    } catch (error) {
-      this.setError(error);
-      return false;
-    }
+    });
   }
 
   async createProject(name: string): Promise<boolean> {
-    try {
-      const project = await firstValueFrom(this.api.createProject(name));
+    return this.runAction('create-project', () => this.api.createProject(name), project => {
       this.projects.update(projects => [...projects, project]);
-      this.error.set(null);
-      return true;
-    } catch (error) {
-      this.setError(error);
-      return false;
-    }
+    });
   }
 
   async archiveProject(id: string): Promise<boolean> {
-    try {
-      await firstValueFrom(this.api.archiveProject(id));
+    return this.runAction('archive-project', () => this.api.archiveProject(id), () => {
       this.projects.update(projects => projects.filter(project => project.id !== id));
-      this.error.set(null);
-      return true;
-    } catch (error) {
-      this.setError(error);
-      return false;
-    }
+    });
   }
 
   async associateWorkItem(id: string, projectId: string | null): Promise<boolean> {
-    try {
-      const item = await firstValueFrom(this.api.associateWorkItem(id, projectId));
+    return this.runAction('associate-work', () => this.api.associateWorkItem(id, projectId), item => {
       this.workItems.update(items => items.map(existing => existing.id === id ? item : existing));
-      this.error.set(null);
-      return true;
-    } catch (error) {
-      this.setError(error);
-      return false;
-    }
+    });
   }
 
   async startWorkItem(id: string): Promise<boolean> {
-    return this.updateWorkItem(() => this.api.startWorkItem(id), id);
+    return this.updateWorkItem('start', () => this.api.startWorkItem(id), id);
   }
 
   async completeWorkItem(id: string): Promise<boolean> {
-    return this.updateWorkItem(() => this.api.completeWorkItem(id), id);
+    return this.updateWorkItem('complete', () => this.api.completeWorkItem(id), id);
   }
 
   setError(error: unknown): void {
@@ -144,15 +110,28 @@ export class OrganizerStateService {
     this.error.set('The Organizer API request failed.');
   }
 
-  private async updateWorkItem(request: () => ReturnType<OrganizerApiClient['startWorkItem']>, id: string): Promise<boolean> {
-    try {
-      const item = await firstValueFrom(request());
+  private async updateWorkItem(action: string, request: () => ReturnType<OrganizerApiClient['startWorkItem']>, id: string): Promise<boolean> {
+    return this.runAction(action, request, item => {
       this.workItems.update(items => items.map(existing => existing.id === id ? item : existing));
+    });
+  }
+
+  private async runAction<T>(action: string, request: () => Observable<T>, apply: (value: T) => void): Promise<boolean> {
+    if (this.actionInProgress() !== null) {
+      return false;
+    }
+
+    this.actionInProgress.set(action);
+    try {
+      const value = await firstValueFrom(request());
+      apply(value);
       this.error.set(null);
       return true;
     } catch (error) {
       this.setError(error);
       return false;
+    } finally {
+      this.actionInProgress.set(null);
     }
   }
 }

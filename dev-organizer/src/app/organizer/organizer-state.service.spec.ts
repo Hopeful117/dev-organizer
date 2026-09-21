@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { OrganizerStateService } from './organizer-state.service';
@@ -24,10 +25,10 @@ describe('OrganizerStateService', () => {
       { id: 'project-1', name: 'Organizer', status: 'ACTIVE', createdAt: '', updatedAt: '' },
     ]);
     http.expectOne('/api/v1/inbox').flush([
-      { id: 'inbox-1', content: 'Capture', projectId: null, status: 'CAPTURED', createdAt: '' },
+      { id: 'inbox-1', content: 'Capture', projectId: 'project-1', status: 'CAPTURED', createdAt: '' },
     ]);
     http.expectOne('/api/v1/work').flush([
-      { id: 'work-1', title: 'Work', description: null, projectId: null, status: 'TODO', createdAt: '', updatedAt: '' },
+      { id: 'work-1', title: 'Work', description: null, projectId: 'project-1', status: 'TODO', createdAt: '', updatedAt: '' },
     ]);
 
     await load;
@@ -35,6 +36,8 @@ describe('OrganizerStateService', () => {
     expect(state.projects()).toHaveLength(1);
     expect(state.inboxItems()).toHaveLength(1);
     expect(state.activeWork()).toHaveLength(1);
+    expect(state.projectSummaries()[0].activeWorkCount).toBe(1);
+    expect(state.projectSummaries()[0].inboxCount).toBe(1);
   });
 
   it('removes an Inbox item and adds promoted Work from the server response', async () => {
@@ -69,5 +72,16 @@ describe('OrganizerStateService', () => {
     });
     expect(await complete).toBe(true);
     expect(state.workItems()[0].status).toBe('DONE');
+  });
+
+  it('makes API failures visible in the state', async () => {
+    const capture = state.capture('Unavailable', null);
+    http.expectOne('/api/v1/inbox').flush(
+      { message: 'Organizer backend unavailable' },
+      new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }),
+    );
+
+    expect(await capture).toBe(false);
+    expect(state.error()).toBe('Organizer backend unavailable');
   });
 });
