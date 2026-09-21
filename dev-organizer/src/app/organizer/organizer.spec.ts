@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { OrganizerHome } from './organizer';
 import { OrganizerStateService } from './organizer-state.service';
 import { InboxItem, ProjectSummary, WorkItem } from './organizer.models';
@@ -52,7 +53,7 @@ describe('OrganizerHome', () => {
     state.projectSummaries.set([]);
     await TestBed.configureTestingModule({
       imports: [OrganizerHome],
-      providers: [{ provide: OrganizerStateService, useValue: state }],
+      providers: [provideRouter([]), { provide: OrganizerStateService, useValue: state }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(OrganizerHome);
@@ -106,5 +107,19 @@ describe('OrganizerHome', () => {
 
     expect(state.capture).toHaveBeenCalledWith('Capture this', null);
     expect(component.captureContent).toBe('');
+  });
+
+  it('makes a Project identity a navigable workspace link', () => {
+    state.projectSummaries.set([{
+      project: { id: 'project-1', name: 'Launch Organizer 1.0', status: 'ACTIVE', devlogProject: null, createdAt: '', updatedAt: '' },
+      activeWorkCount: 1,
+      inboxCount: 0,
+    }]);
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector('.project-identity--link') as HTMLAnchorElement;
+    expect(link).not.toBeNull();
+    expect(link.getAttribute('href')).toBe('/projects/project-1');
+    expect(link.getAttribute('aria-label')).toContain('Open Launch Organizer 1.0 project workspace');
   });
 });

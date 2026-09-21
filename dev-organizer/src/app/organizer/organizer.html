@@ -238,28 +238,29 @@
       <div class="project-list">
         @for (summary of state.projectSummaries(); track summary.project.id) {
           <div class="project-row">
-            <div class="project-identity">
+            <a class="project-identity project-identity--link" [routerLink]="['/projects', summary.project.id]" [attr.aria-label]="'Open ' + summary.project.name + ' project workspace'">
               <strong>{{ summary.project.name }}</strong>
               <div class="project-metrics" aria-label="Project activity">
                 <span>{{ summary.activeWorkCount }} active</span>
                 <span>{{ summary.inboxCount }} inbox</span>
               </div>
               @if (summary.project.devlogProject; as devlogProject) {
-                <p class="project-link">DEVLOG / {{ devlogProject.slug }}</p>
-              } @else {
-                <div class="project-link-form">
-                  <select
-                    [(ngModel)]="devlogProjectSelection[summary.project.id]"
-                    [attr.aria-label]="'DevLog project for ' + summary.project.name">
-                    <option value="">Link DevLog project</option>
-                    @for (devlogProject of state.devlogProjects(); track devlogProject.id) {
-                      <option [value]="devlogProject.id">{{ devlogProject.name }}</option>
-                    }
-                  </select>
-                  <button type="button" class="quiet-button" (click)="linkDevlogProject(summary.project.id)">Link</button>
-                </div>
+                <p class="project-devlog-link">DEVLOG / {{ devlogProject.slug }}</p>
               }
-            </div>
+            </a>
+            @if (!summary.project.devlogProject) {
+              <div class="project-link-form">
+                <select
+                  [(ngModel)]="devlogProjectSelection[summary.project.id]"
+                  [attr.aria-label]="'DevLog project for ' + summary.project.name">
+                  <option value="">Link DevLog project</option>
+                  @for (devlogProject of state.devlogProjects(); track devlogProject.id) {
+                    <option [value]="devlogProject.id">{{ devlogProject.name }}</option>
+                  }
+                </select>
+                <button type="button" class="quiet-button" (click)="linkDevlogProject(summary.project.id)">Link</button>
+              </div>
+            }
             <div class="project-actions">
               @if (summary.project.devlogProject) {
                 <button type="button" class="quiet-button" (click)="unlinkDevlogProject(summary.project.id)">Unlink</button>

@@ -49,6 +49,11 @@ export class OrganizerStateService {
     }
   }
 
+  async loadWorkspace(): Promise<void> {
+    await this.loadAll();
+    await Promise.all([this.refreshAttention(), this.loadDevlogProjects()]);
+  }
+
   async capture(content: string, projectId: string | null): Promise<boolean> {
     return this.runAction('capture', () => this.api.capture(content, projectId), item => {
       this.inboxItems.update(items => [item, ...items]);

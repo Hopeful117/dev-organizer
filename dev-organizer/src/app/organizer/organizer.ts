@@ -1,11 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { OrganizerStateService } from './organizer-state.service';
 
 @Component({
   selector: 'app-organizer',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, RouterLink],
   templateUrl: './organizer.html',
   styleUrl: './organizer.css',
 })

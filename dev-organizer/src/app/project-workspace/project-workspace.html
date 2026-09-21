@@ -1,0 +1,147 @@
+<main class="workspace-shell">
+  <a class="back-link" routerLink="/">← Organizer</a>
+
+  @if (state.isLoading()) {
+    <p class="workspace-status">Loading project workspace...</p>
+  } @else if (!project()) {
+    <section class="not-found-panel" aria-labelledby="not-found-title">
+      <p class="eyebrow">PROJECT NOT FOUND</p>
+      <h1 id="not-found-title">This project is not available.</h1>
+      <p>The project may have been removed or the link may be incorrect.</p>
+      <a class="primary-button" routerLink="/">Return to Organizer</a>
+    </section>
+  } @else {
+    <header class="workspace-header">
+      <div>
+        <p class="eyebrow">PROJECT WORKSPACE</p>
+        <h1>{{ project()!.name }}</h1>
+        <div class="workspace-metrics" aria-label="Project activity summary">
+          <span>{{ projectInProgressWork().length + projectTodoWork().length }} active work</span>
+          <span>{{ projectInbox().length }} inbox</span>
+          <span>{{ projectAttention().length }} attention</span>
+        </div>
+      </div>
+      @if (project()!.status === 'ARCHIVED') {
+        <span class="archive-badge">ARCHIVED</span>
+      }
+    </header>
+
+    @if (state.error(); as error) {
+      <p class="error-message" role="alert">{{ error }}</p>
+    }
+
+    <section class="workspace-capture" aria-labelledby="workspace-capture-title">
+      <div>
+        <p class="eyebrow">QUICK CAPTURE</p>
+        <h2 id="workspace-capture-title">Capture into this project</h2>
+      </div>
+      <div class="workspace-capture__actions">
+        <input
+          [ngModel]="captureContent()"
+          (ngModelChange)="captureContent.set($event)"
+          placeholder="Capture something..."
+          aria-label="Project capture content">
+        <button type="button" class="primary-button" [disabled]="state.actionInProgress() !== null || project()!.status === 'ARCHIVED'" (click)="capture()">Capture</button>
+      </div>
+    </section>
+
+    <div class="workspace-grid">
+      <section class="workspace-section workspace-section--work" aria-labelledby="workspace-work-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CURRENT WORK</p>
+            <h2 id="workspace-work-title">Work</h2>
+          </div>
+          <span class="count-badge">{{ projectInProgressWork().length + projectTodoWork().length }}</span>
+        </div>
+
+        @if (projectInProgressWork().length === 0 && projectTodoWork().length === 0) {
+          <p class="empty-state">No active work in this project.</p>
+        }
+        @for (item of projectInProgressWork(); track item.id) {
+          <article class="workspace-item workspace-item--active">
+            <div class="workspace-item__topline"><span class="status-chip status-chip--in_progress">IN PROGRESS</span></div>
+            <h3>{{ item.title }}</h3>
+            @if (item.description) { <p>{{ item.description }}</p> }
+            <button type="button" class="secondary-button" [disabled]="state.actionInProgress() !== null" (click)="state.completeWorkItem(item.id)">Complete</button>
+          </article>
+        }
+        @for (item of projectTodoWork(); track item.id) {
+          <article class="workspace-item">
+            <div class="workspace-item__topline"><span class="status-chip status-chip--todo">TODO</span></div>
+            <h3>{{ item.title }}</h3>
+            @if (item.description) { <p>{{ item.description }}</p> }
+            <button type="button" class="secondary-button" [disabled]="state.actionInProgress() !== null" (click)="state.startWorkItem(item.id)">Start</button>
+          </article>
+        }
+        @if (projectCompletedWork().length > 0) {
+          <p class="subsection-label">Recently completed</p>
+          @for (item of projectCompletedWork(); track item.id) {
+            <article class="workspace-item workspace-item--completed">
+              <div class="workspace-item__topline"><span class="status-chip status-chip--done">DONE</span><time [dateTime]="item.updatedAt">{{ item.updatedAt | date : 'dd MMM yyyy, HH:mm' }}</time></div>
+              <h3>{{ item.title }}</h3>
+            </article>
+          }
+        }
+      </section>
+
+      <section class="workspace-section" aria-labelledby="workspace-inbox-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">INBOX</p><h2 id="workspace-inbox-title">Project Inbox</h2></div>
+          <span class="count-badge">{{ projectInbox().length }}</span>
+        </div>
+        @if (projectInbox().length === 0) { <p class="empty-state">No captured items are assigned to this project.</p> }
+        @for (item of projectInbox(); track item.id) {
+          <article class="workspace-item">
+            <div class="workspace-item__topline"><span class="status-chip status-chip--captured">CAPTURED</span><time [dateTime]="item.createdAt">{{ item.createdAt | date : 'dd MMM yyyy, HH:mm' }}</time></div>
+            <h3>{{ item.content }}</h3>
+            <div class="workspace-actions">
+              <button type="button" class="secondary-button" [disabled]="state.actionInProgress() !== null" (click)="state.promoteInboxItem(item.id)">Promote</button>
+              <button type="button" class="quiet-button" [disabled]="state.actionInProgress() !== null" (click)="state.dismissInboxItem(item.id)">Dismiss</button>
+            </div>
+          </article>
+        }
+      </section>
+
+      <section class="workspace-section workspace-section--attention" aria-labelledby="workspace-attention-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">ATTENTION</p><h2 id="workspace-attention-title">Needs review</h2></div>
+          <span class="count-badge">{{ projectAttention().length }}</span>
+        </div>
+        @if (projectAttention().length === 0) { <p class="empty-state">No project signals need your attention.</p> }
+        @for (item of projectAttention(); track item.id) {
+          <article class="workspace-item workspace-item--attention">
+            <div class="workspace-item__topline"><span class="status-chip status-chip--attention">DEVLOG</span><time [dateTime]="item.observedAt">Observed {{ item.observedAt | date : 'dd MMM yyyy, HH:mm' }}</time></div>
+            <h3>{{ item.reason }}</h3>
+            <p class="attention-guidance">{{ guidanceLabel(item.guidance) }}</p>
+            <div class="workspace-actions">
+              <button type="button" class="secondary-button" (click)="inspectAttention(item.sourceReference)">Inspect</button>
+              <button type="button" class="quiet-button" title="Mark this signal as reviewed" (click)="state.acknowledgeAttention(item.id)">Acknowledge</button>
+              <button type="button" class="quiet-button" title="Remove this signal from current attention" (click)="state.dismissAttention(item.id)">Dismiss</button>
+            </div>
+          </article>
+        }
+        @if (state.attentionError(); as attentionError) { <p class="integration-message" role="status">{{ attentionError }}</p> }
+      </section>
+
+      <section class="workspace-section workspace-section--integration" aria-labelledby="workspace-integration-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">INTEGRATIONS</p><h2 id="workspace-integration-title">DevLog</h2></div>
+        </div>
+        @if (project()!.devlogProject; as devlogProject) {
+          <p class="integration-connected">Connected to <strong>{{ devlogProject.slug }}</strong></p>
+          <button type="button" class="quiet-button" [disabled]="project()!.status === 'ARCHIVED'" (click)="unlinkDevlogProject()">Unlink DevLog project</button>
+        } @else {
+          <p class="empty-state">Not connected to a DevLog project.</p>
+          <div class="integration-link-form">
+            <select [(ngModel)]="devlogProjectSelection" aria-label="DevLog project for workspace">
+              <option value="">Select DevLog project</option>
+              @for (devlogProject of state.devlogProjects(); track devlogProject.id) { <option [value]="devlogProject.id">{{ devlogProject.name }}</option> }
+            </select>
+            <button type="button" class="secondary-button" [disabled]="project()!.status === 'ARCHIVED'" (click)="linkDevlogProject()">Link</button>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</main>

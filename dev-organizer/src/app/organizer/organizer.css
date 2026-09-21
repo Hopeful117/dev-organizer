@@ -65,10 +65,12 @@ button:disabled { cursor: wait; opacity: .55; }
 .project-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .7rem; }
 .project-row { justify-content: space-between; align-items: flex-start; padding: .9rem 1rem; border: 1px solid #263449; color: #e2e8f0; }
 .project-identity { min-width: 0; }
+.project-identity--link { display: block; color: inherit; text-decoration: none; }
+.project-identity--link:hover strong { color: #93c5fd; }
 .project-identity strong { display: block; overflow-wrap: anywhere; }
 .project-metrics { display: flex; flex-wrap: wrap; gap: .35rem .8rem; margin-top: .45rem; color: #94a3b8; font-size: .78rem; }
 .project-metrics span::before { content: ''; display: inline-block; width: .35rem; height: .35rem; margin: 0 .35rem .1rem 0; border-radius: 50%; background: #60a5fa; }
-.project-link { margin: .55rem 0 0; color: #60a5fa; font-size: .72rem; font-weight: 700; letter-spacing: .06em; }
+.project-devlog-link { margin: .55rem 0 0; color: #60a5fa; font-size: .72rem; font-weight: 700; letter-spacing: .06em; }
 .project-link-form { display: flex; align-items: center; gap: .35rem; margin-top: .6rem; }
 .project-link-form select { max-width: 220px; }
 .project-actions { display: flex; align-items: center; gap: .25rem; flex-shrink: 0; }
