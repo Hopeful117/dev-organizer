@@ -59,6 +59,14 @@ describe('OrganizerHome', () => {
     expect(text).toContain('No work yet');
   });
 
+  it('renders Quick Capture as a compact single-line interaction', () => {
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('input[aria-label="Capture content"]')).not.toBeNull();
+    expect(element.querySelector('textarea')).toBeNull();
+    expect(element.querySelector('.capture-panel')).not.toBeNull();
+  });
+
   it('presents in-progress and TODO work in their respective Home areas', () => {
     const inProgress: WorkItem = {
       id: 'work-1', title: 'Continue API work', description: null, projectId: null,

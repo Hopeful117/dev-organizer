@@ -11,35 +11,13 @@
     <p class="error-message" role="alert">{{ error }}</p>
   }
 
-  <section class="capture-panel" aria-labelledby="capture-title">
-    <div>
-      <p class="eyebrow">QUICK CAPTURE</p>
-      <h2 id="capture-title">Put it somewhere safe</h2>
-    </div>
-    <textarea
-      [(ngModel)]="captureContent"
-      rows="3"
-      placeholder="What needs your attention later?"
-      aria-label="Capture content"></textarea>
-    <div class="capture-actions">
-      <select [(ngModel)]="captureProjectId" aria-label="Optional capture project">
-        <option value="">No project</option>
-        @for (project of state.activeProjects(); track project.id) {
-          <option [value]="project.id">{{ project.name }}</option>
-        }
-      </select>
-      <button
-        class="primary-button"
-        type="button"
-        [disabled]="state.actionInProgress() !== null"
-        (click)="capture()">Capture</button>
-    </div>
-  </section>
-
-  <section class="continue-section" aria-labelledby="continue-title">
+  <section
+    class="continue-section"
+    [class.continue-section--active]="state.inProgressWork().length > 0"
+    aria-labelledby="continue-title">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">IN MOTION</p>
+        <p class="eyebrow">CURRENT THREAD</p>
         <h2 id="continue-title">Continue</h2>
       </div>
       <span class="count-badge">{{ state.inProgressWork().length }}</span>
@@ -69,15 +47,40 @@
     }
   </section>
 
+  <section class="capture-panel" aria-labelledby="capture-title">
+    <div class="capture-label">
+      <p class="eyebrow">QUICK CAPTURE</p>
+      <h2 id="capture-title">Put it somewhere safe</h2>
+    </div>
+    <div class="capture-actions">
+      <input
+        [(ngModel)]="captureContent"
+        placeholder="Capture something..."
+        aria-label="Capture content">
+      <select [(ngModel)]="captureProjectId" aria-label="Optional capture project">
+        <option value="">No project</option>
+        @for (project of state.activeProjects(); track project.id) {
+          <option [value]="project.id">{{ project.name }}</option>
+        }
+      </select>
+      <button
+        class="primary-button"
+        type="button"
+        [disabled]="state.actionInProgress() !== null"
+        (click)="capture()">Capture</button>
+    </div>
+  </section>
+
   <div class="organizer-grid">
     <section class="content-section" aria-labelledby="inbox-title">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">UNORGANIZED</p>
+          <p class="eyebrow">TO SORT</p>
           <h2 id="inbox-title">Inbox</h2>
         </div>
         <span class="count-badge">{{ state.inboxItems().length }}</span>
       </div>
+      <p class="section-description">Captured information waiting for a decision.</p>
 
       @if (state.inboxItems().length === 0) {
         <p class="empty-state">Your Inbox is clear.</p>
@@ -120,11 +123,12 @@
     <section class="content-section" aria-labelledby="work-title">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">ACTIONABLE</p>
+          <p class="eyebrow">EXECUTION</p>
           <h2 id="work-title">Work</h2>
         </div>
-        <span class="count-badge">{{ state.workItems().length }}</span>
+        <span class="count-badge">{{ state.todoWork().length }}</span>
       </div>
+      <p class="section-description">TODO items ready for focused execution.</p>
 
       @if (state.workItems().length === 0) {
         <p class="empty-state">No work yet. Promote an Inbox item when it becomes actionable.</p>
@@ -175,11 +179,12 @@
     <section class="content-section projects-section" aria-labelledby="projects-title">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">ORGANIZATIONAL SCOPE</p>
+          <p class="eyebrow">CONTEXT</p>
           <h2 id="projects-title">Projects</h2>
         </div>
         <span class="count-badge">{{ state.activeProjects().length }}</span>
       </div>
+      <p class="section-description">The active areas your work belongs to.</p>
 
       <form class="project-form" (ngSubmit)="createProject()">
         <input [(ngModel)]="projectName" name="projectName" placeholder="New project name" aria-label="Project name">
@@ -190,11 +195,14 @@
       </form>
 
       <div class="project-list">
-        @for (summary of state.projectSummaries(); track summary.project.id) {
+          @for (summary of state.projectSummaries(); track summary.project.id) {
           <div class="project-row">
-            <div>
+            <div class="project-identity">
               <strong>{{ summary.project.name }}</strong>
-              <p>{{ summary.activeWorkCount }} active work items · {{ summary.inboxCount }} inbox items</p>
+              <div class="project-metrics" aria-label="Project activity">
+                <span>{{ summary.activeWorkCount }} active</span>
+                <span>{{ summary.inboxCount }} inbox</span>
+              </div>
             </div>
             <button
               type="button"
