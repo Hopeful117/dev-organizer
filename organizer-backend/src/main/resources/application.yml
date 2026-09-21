@@ -1,0 +1,18 @@
+server:
+  address: 127.0.0.1
+  port: 8080
+
+spring:
+  datasource:
+    url: ${ORGANIZER_DB_URL:jdbc:postgresql://localhost:5432/organizer}
+    username: ${ORGANIZER_DB_USERNAME:organizer}
+    password: ${ORGANIZER_DB_PASSWORD:organizer}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
