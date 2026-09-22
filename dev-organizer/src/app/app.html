@@ -1,3 +1,20 @@
-
-
+<header class="application-header">
+  <div class="application-header__inner">
+    <a class="application-brand" routerLink="/" aria-label="Developer OS Organizer home">
+      <span class="application-brand__mark">D</span>
+      <span><strong>Developer OS</strong><small>Organizer</small></span>
+    </a>
+    <nav aria-label="Developer OS applications">
+      @for (application of applications; track application.id) {
+        @if (application.id === 'ORGANIZER') {
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{
+            application.label
+          }}</a>
+        } @else {
+          <a [href]="application.destination">{{ application.label }}</a>
+        }
+      }
+    </nav>
+  </div>
+</header>
 <router-outlet />

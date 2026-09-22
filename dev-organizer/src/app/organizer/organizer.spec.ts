@@ -3,6 +3,7 @@ import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { OrganizerHome } from './organizer';
 import { OrganizerStateService } from './organizer-state.service';
+import { WorkspaceNavigationService } from '../workspace/workspace-navigation.service';
 import { InboxItem, ProjectSummary, WorkItem } from './organizer.models';
 
 describe('OrganizerHome', () => {
@@ -42,6 +43,7 @@ describe('OrganizerHome', () => {
     acknowledgeAttention: vi.fn(() => Promise.resolve(true)),
     dismissAttention: vi.fn(() => Promise.resolve(true)),
   };
+  const workspaceNavigation = { navigateToResource: vi.fn() };
 
   beforeEach(async () => {
     state.inboxItems.set([]);
@@ -53,11 +55,16 @@ describe('OrganizerHome', () => {
     state.projectSummaries.set([]);
     await TestBed.configureTestingModule({
       imports: [OrganizerHome],
-      providers: [provideRouter([]), { provide: OrganizerStateService, useValue: state }],
+      providers: [
+        provideRouter([]),
+        { provide: OrganizerStateService, useValue: state },
+        { provide: WorkspaceNavigationService, useValue: workspaceNavigation },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(OrganizerHome);
     fixture.detectChanges();
+    workspaceNavigation.navigateToResource.mockClear();
   });
 
   it('loads the Organizer state and renders the three home areas', () => {
@@ -80,12 +87,22 @@ describe('OrganizerHome', () => {
 
   it('presents in-progress and TODO work in their respective Home areas', () => {
     const inProgress: WorkItem = {
-      id: 'work-1', title: 'Continue API work', description: null, projectId: null,
-      status: 'IN_PROGRESS', createdAt: '', updatedAt: '',
+      id: 'work-1',
+      title: 'Continue API work',
+      description: null,
+      projectId: null,
+      status: 'IN_PROGRESS',
+      createdAt: '',
+      updatedAt: '',
     };
     const todo: WorkItem = {
-      id: 'work-2', title: 'Review API contract', description: null, projectId: null,
-      status: 'TODO', createdAt: '', updatedAt: '',
+      id: 'work-2',
+      title: 'Review API contract',
+      description: null,
+      projectId: null,
+      status: 'TODO',
+      createdAt: '',
+      updatedAt: '',
     };
     state.workItems.set([inProgress, todo]);
     state.activeWork.set([inProgress, todo]);
@@ -110,16 +127,37 @@ describe('OrganizerHome', () => {
   });
 
   it('makes a Project identity a navigable workspace link', () => {
-    state.projectSummaries.set([{
-      project: { id: 'project-1', name: 'Launch Organizer 1.0', status: 'ACTIVE', devlogProject: null, createdAt: '', updatedAt: '' },
-      activeWorkCount: 1,
-      inboxCount: 0,
-    }]);
+    state.projectSummaries.set([
+      {
+        project: {
+          id: 'project-1',
+          name: 'Launch Organizer 1.0',
+          status: 'ACTIVE',
+          devlogProject: null,
+          createdAt: '',
+          updatedAt: '',
+        },
+        activeWorkCount: 1,
+        inboxCount: 0,
+      },
+    ]);
     fixture.detectChanges();
 
-    const link = fixture.nativeElement.querySelector('.project-identity--link') as HTMLAnchorElement;
+    const link = fixture.nativeElement.querySelector(
+      '.project-identity--link',
+    ) as HTMLAnchorElement;
     expect(link).not.toBeNull();
     expect(link.getAttribute('href')).toBe('/projects/project-1');
-    expect(link.getAttribute('aria-label')).toContain('Open Launch Organizer 1.0 project workspace');
+    expect(link.getAttribute('aria-label')).toContain(
+      'Open Launch Organizer 1.0 project workspace',
+    );
+  });
+
+  it('delegates Attention inspection to Workspace using the canonical reference', () => {
+    fixture.componentInstance.inspectAttention('devlog://projects/devlog-ai/freshness');
+
+    expect(workspaceNavigation.navigateToResource).toHaveBeenCalledWith(
+      'devlog://projects/devlog-ai/freshness',
+    );
   });
 });

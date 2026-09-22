@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { OrganizerStateService } from '../organizer/organizer-state.service';
+import { WorkspaceNavigationService } from '../workspace/workspace-navigation.service';
 
 @Component({
   selector: 'app-project-workspace',
@@ -12,18 +13,33 @@ import { OrganizerStateService } from '../organizer/organizer-state.service';
 })
 export class ProjectWorkspace implements OnInit {
   readonly state = inject(OrganizerStateService);
+  private readonly workspaceNavigation = inject(WorkspaceNavigationService);
   private readonly route = inject(ActivatedRoute);
   readonly projectId = signal('');
   readonly captureContent = signal('');
   devlogProjectSelection = '';
 
-  readonly project = computed(() => this.state.projects().find(project => project.id === this.projectId()) ?? null);
-  readonly projectWork = computed(() => this.state.workItems().filter(item => item.projectId === this.projectId()));
-  readonly projectTodoWork = computed(() => this.projectWork().filter(item => item.status === 'TODO'));
-  readonly projectInProgressWork = computed(() => this.projectWork().filter(item => item.status === 'IN_PROGRESS'));
-  readonly projectCompletedWork = computed(() => this.projectWork().filter(item => item.status === 'DONE'));
-  readonly projectInbox = computed(() => this.state.inboxItems().filter(item => item.projectId === this.projectId()));
-  readonly projectAttention = computed(() => this.state.attentions().filter(item => item.projectId === this.projectId()));
+  readonly project = computed(
+    () => this.state.projects().find((project) => project.id === this.projectId()) ?? null,
+  );
+  readonly projectWork = computed(() =>
+    this.state.workItems().filter((item) => item.projectId === this.projectId()),
+  );
+  readonly projectTodoWork = computed(() =>
+    this.projectWork().filter((item) => item.status === 'TODO'),
+  );
+  readonly projectInProgressWork = computed(() =>
+    this.projectWork().filter((item) => item.status === 'IN_PROGRESS'),
+  );
+  readonly projectCompletedWork = computed(() =>
+    this.projectWork().filter((item) => item.status === 'DONE'),
+  );
+  readonly projectInbox = computed(() =>
+    this.state.inboxItems().filter((item) => item.projectId === this.projectId()),
+  );
+  readonly projectAttention = computed(() =>
+    this.state.attentions().filter((item) => item.projectId === this.projectId()),
+  );
 
   ngOnInit(): void {
     this.projectId.set(this.route.snapshot.paramMap.get('projectId') ?? '');
@@ -43,7 +59,9 @@ export class ProjectWorkspace implements OnInit {
 
   async linkDevlogProject(): Promise<void> {
     const project = this.project();
-    const devlogProject = this.state.devlogProjects().find(item => item.id === this.devlogProjectSelection);
+    const devlogProject = this.state
+      .devlogProjects()
+      .find((item) => item.id === this.devlogProjectSelection);
     if (!project || !devlogProject) {
       this.state.setError('Select a DevLog project before linking.');
       return;
@@ -63,6 +81,6 @@ export class ProjectWorkspace implements OnInit {
   }
 
   inspectAttention(sourceReference: string): void {
-    window.open(sourceReference, '_blank', 'noopener,noreferrer');
+    this.workspaceNavigation.navigateToResource(sourceReference);
   }
 }

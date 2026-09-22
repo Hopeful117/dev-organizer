@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { OrganizerStateService } from './organizer-state.service';
+import { WorkspaceNavigationService } from '../workspace/workspace-navigation.service';
 
 @Component({
   selector: 'app-organizer',
@@ -12,6 +13,7 @@ import { OrganizerStateService } from './organizer-state.service';
 })
 export class OrganizerHome implements OnInit {
   readonly state = inject(OrganizerStateService);
+  private readonly workspaceNavigation = inject(WorkspaceNavigationService);
   captureContent = '';
   captureProjectId = '';
   projectName = '';
@@ -63,7 +65,9 @@ export class OrganizerHome implements OnInit {
 
   async linkDevlogProject(projectId: string): Promise<void> {
     const devlogProjectId = this.devlogProjectSelection[projectId];
-    const devlogProject = this.state.devlogProjects().find(project => project.id === devlogProjectId);
+    const devlogProject = this.state
+      .devlogProjects()
+      .find((project) => project.id === devlogProjectId);
     if (!devlogProject) {
       this.state.setError('Select a DevLog project before linking.');
       return;
@@ -78,7 +82,9 @@ export class OrganizerHome implements OnInit {
   }
 
   projectLabel(projectId: string): string {
-    return this.state.projects().find(project => project.id === projectId)?.name ?? 'Linked project';
+    return (
+      this.state.projects().find((project) => project.id === projectId)?.name ?? 'Linked project'
+    );
   }
 
   guidanceLabel(guidance: string): string {
@@ -86,6 +92,6 @@ export class OrganizerHome implements OnInit {
   }
 
   inspectAttention(sourceReference: string): void {
-    window.open(sourceReference, '_blank', 'noopener,noreferrer');
+    this.workspaceNavigation.navigateToResource(sourceReference);
   }
 }
