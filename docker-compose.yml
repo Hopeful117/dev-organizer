@@ -1,0 +1,49 @@
+services:
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: organizer
+      POSTGRES_USER: organizer
+      POSTGRES_PASSWORD: ${ORGANIZER_DB_PASSWORD:-organizer}
+    ports:
+      - "${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - organizer-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U organizer -d organizer"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./organizer-backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ORGANIZER_PORT: 14080
+      ORGANIZER_DB_URL: jdbc:postgresql://database:5432/organizer
+      ORGANIZER_DB_USERNAME: organizer
+      ORGANIZER_DB_PASSWORD: ${ORGANIZER_DB_PASSWORD:-organizer}
+      DEVLOG_BASE_URL: ${DEVLOG_BASE_URL:-http://host.docker.internal:18080}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${ORGANIZER_PORT:-14080}:14080"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./dev-organizer
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-14200}:80"
+    depends_on:
+      - backend
+
+volumes:
+  organizer-db-data:

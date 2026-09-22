@@ -1,0 +1,9 @@
+.git
+.idea
+.playwright-mcp
+artifacts
+
+dev-organizer/node_modules
+dev-organizer/dist
+
+organizer-backend/target

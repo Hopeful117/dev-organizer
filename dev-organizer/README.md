@@ -12,6 +12,20 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Docker
+
+The complete application stack can be started with Docker Compose:
+
+```bash
+docker compose up -d --build
+```
+
+Open `http://localhost:14200/`. PostgreSQL data is persisted in the `organizer-db-data` volume. To stop the stack without deleting its data, run:
+
+```bash
+docker compose down
+```
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
