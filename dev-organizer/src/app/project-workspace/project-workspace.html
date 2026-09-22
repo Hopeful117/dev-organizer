@@ -130,6 +130,7 @@
         </div>
         @if (project()!.devlogProject; as devlogProject) {
           <p class="integration-connected">Connected to <strong>{{ devlogProject.slug }}</strong></p>
+          <button type="button" class="secondary-button" (click)="openDevlogProject()">Open in DevLog</button>
           <button type="button" class="quiet-button" [disabled]="project()!.status === 'ARCHIVED'" (click)="unlinkDevlogProject()">Unlink DevLog project</button>
         } @else {
           <p class="empty-state">Not connected to a DevLog project.</p>

@@ -8,4 +8,8 @@ export class WorkspaceNavigationService {
     destination.searchParams.set('resource', canonicalReference);
     window.open(destination.toString(), '_blank', 'noopener,noreferrer');
   }
+
+  navigateToProjectContext(projectSlug: string): void {
+    this.navigateToResource(`devlog://projects/${projectSlug}/freshness`);
+  }
 }

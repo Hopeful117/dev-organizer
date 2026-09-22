@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ProjectWorkspace } from './project-workspace';
 import { InboxItem, Project, WorkItem } from '../organizer/organizer.models';
 import { OrganizerStateService } from '../organizer/organizer-state.service';
+import { WorkspaceNavigationService } from '../workspace/workspace-navigation.service';
 
 describe('ProjectWorkspace', () => {
   let fixture: ComponentFixture<ProjectWorkspace>;
@@ -41,6 +42,9 @@ describe('ProjectWorkspace', () => {
     dismissAttention: vi.fn(() => Promise.resolve(true)),
     setError: vi.fn(),
   };
+  const workspaceNavigation = {
+    navigateToProjectContext: vi.fn(),
+  };
 
   beforeEach(async () => {
     state.projects.set([project]);
@@ -51,6 +55,7 @@ describe('ProjectWorkspace', () => {
       imports: [ProjectWorkspace],
       providers: [
         { provide: OrganizerStateService, useValue: state },
+        { provide: WorkspaceNavigationService, useValue: workspaceNavigation },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'project-1' } } } },
       ],
     }).compileComponents();
@@ -63,6 +68,20 @@ describe('ProjectWorkspace', () => {
     expect(state.loadWorkspace).toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Launch Organizer 1.0');
     expect(fixture.nativeElement.textContent).toContain('Connected to devlog-ai');
+    expect(fixture.nativeElement.textContent).toContain('Open in DevLog');
+  });
+
+  it('opens the linked project using its persisted DevLog slug', () => {
+    fixture.componentInstance.openDevlogProject();
+
+    expect(workspaceNavigation.navigateToProjectContext).toHaveBeenCalledWith('devlog-ai');
+  });
+
+  it('does not render contextual navigation for an unlinked project', () => {
+    state.projects.set([{ ...project, devlogProject: null }]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Open in DevLog');
   });
 
   it('filters Work, Inbox, and Attention to the selected project', () => {
@@ -93,6 +112,7 @@ describe('ProjectWorkspace', () => {
       imports: [ProjectWorkspace],
       providers: [
         { provide: OrganizerStateService, useValue: state },
+        { provide: WorkspaceNavigationService, useValue: workspaceNavigation },
         { provide: ActivatedRoute, useValue: unknownRoute },
       ],
     }).compileComponents();

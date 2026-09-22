@@ -76,6 +76,13 @@ export class ProjectWorkspace implements OnInit {
     if (project) await this.state.unlinkDevlogProject(project.id);
   }
 
+  openDevlogProject(): void {
+    const devlogProject = this.project()?.devlogProject;
+    if (devlogProject) {
+      this.workspaceNavigation.navigateToProjectContext(devlogProject.slug);
+    }
+  }
+
   guidanceLabel(guidance: string): string {
     return guidance === 'REFRESH_RECOMMENDED' ? 'Refresh recommended' : guidance;
   }
